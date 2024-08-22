@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+    <link rel="stylesheet" href="bootstrap-5.3.3-dist/css/bootstrap.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5">
+                <!-- id -->
+                <div class="mb-3">
+                    <label for="formGroupExampleInput" class="form-label">ID :</label>
+                    <input type="text" readonly class="form-control" id="id">
+                </div>
+                <!-- name -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name :</label>
+                    <input type="text" class="form-control" id="name">
+                </div>
+                <!-- price -->
+                <div class="mb-3">
+                    <label for="price" class="form-label">Price :</label>
+                    <input type="text" class="form-control" id="price">
+                </div>
+                <!-- category -->
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category: </label>
+                    <input type="text" class="form-control" id="category">
+                </div>
+
+                <!-- button -->
+                <button class="btn btn-primary" onclick="saveProducts()">Save</button>
+            </div>
+            <!-- ----------------------------------------------------------- -->
+            <div class="col-md-10">
+                <table class="table table-striped table-dark mt-5">
+                    <thead>
+                        <tr>
+                            <td>Name</td>
+                            <td>Price</td>
+                            <td>Category</td>
+                            <td>Delete</td>
+                            <td>Update</td>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <!-- ----------------------------------------------------------- -->
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+        import { getFirestore , addDoc , collection ,onSnapshot ,deleteDoc, doc , updateDoc} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyCavurxvRdQmKHnh24k96EaxtvCFVkoScM",
+          authDomain: "firstproject-93d10.firebaseapp.com",
+          databaseURL: "https://firstproject-93d10-default-rtdb.firebaseio.com",
+          projectId: "firstproject-93d10",
+          storageBucket: "firstproject-93d10.appspot.com",
+          messagingSenderId: "945155356985",
+          appId: "1:945155356985:web:d6d86366761862317b90e8",
+          measurementId: "G-XJ6XXBGN98"
+        };
+
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const firestore = getFirestore(app)
+
+
+        window.saveProducts = saveProducts
+        async function saveProducts() {
+            var id = document.getElementById("id").value
+            var name = document.getElementById("name").value
+            var price = parseInt(document.getElementById("price").value)
+            var category = document.getElementById("category").value
+
+            var product = {
+                Name: name,
+                Price: price,
+                Category: category
+            }
+            try {
+                if (id == "") {
+                    //save
+                    var res = await addDoc(collection(firestore, 'Product'), product)
+                    console.log(res.id);
+                }else{
+                    //update
+                    updateDoc(doc(firestore,'Product', id),product)
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        // ---------------------------------------------------------------------
+        onSnapshot(collection(firestore, 'Product'), function (snapshot) {
+            // console.log(snapshot.docs);
+            var tbody = document.getElementById("tbody")
+            for (const doc of snapshot.docs) {
+                // console.log(doc);
+                // console.log(doc.id, doc.data());
+                tbody.innerHTML += `
+                <tr>
+                    <td>${doc.data().Name}</td>
+                    <td>${doc.data().Price}</td>
+                    <td>${doc.data().Category}</td>
+                    <td><button class="btn btn-danger" onclick="deleteProducts('${doc.id}')">Delete</button></td>
+                    <td><button class="btn btn-success" onclick="updateProducts('${doc.id}','${doc.data().Name}', '${doc.data().Price}', '${doc.data().Category}')">Update</button></td>
+                    </tr>
+                    `
+            }
+        })
+        // ---------------------------------------------------------------------
+        window.deleteProducts = deleteProducts
+        async function deleteProducts(id) {
+            var isAgree = confirm("Are you sure you want to delete ?")
+            if (isAgree) {
+                try {
+                    await deleteDoc(doc(firestore, 'Product', id))
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+            
+        }
+        // ---------------------------------------------------------------------
+        window.updateProducts = updateProducts
+        function updateProducts(id,name,price,category) {
+            document.getElementById("id").value = id
+            document.getElementById("name").value = name
+            document.getElementById("price").value = price
+            document.getElementById("category").value = category
+        }
+    </script>
+    <script src="bootstrap-5.3.3-dist/js/bootstrap.js"></script>
+</body>
+
+</html>
